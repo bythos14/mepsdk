@@ -8,7 +8,17 @@
  static void mep_init_builtins (void);
  static void mep_intrinsic_unavailable (int);
  static bool mep_get_intrinsic_insn (int, const struct cgen_insn **);
-@@ -2933,7 +2934,7 @@ mep_expand_epilogue (void)
+@@ -989,7 +990,8 @@ move_needs_splitting (rtx dest, rtx src,
+ 	  && (INTVAL (XEXP (src, 1)) < -65536
+ 	      || INTVAL (XEXP (src, 1)) > 0xffffff))
+       || (GET_CODE (dest) == REG
+-	  && REGNO (dest) > 7 && REGNO (dest) < FIRST_PSEUDO_REGISTER))
++	  && REGNO (dest) > 7 && REGNO (dest) < FIRST_PSEUDO_REGISTER)
++      || (GET_CODE(src) == LABEL_REF && TARGET_TF))
+     return true;
+   return false;
+ }
+@@ -2933,7 +2935,7 @@ mep_expand_epilogue (void)
    /* This is backwards so that we restore the control and coprocessor
       registers before the temporary registers we use to restore
       them.  */
@@ -17,7 +27,7 @@
      if (mep_call_saves_register (i))
        {
  	machine_mode rmode;
-@@ -3004,11 +3005,9 @@ mep_expand_epilogue (void)
+@@ -3004,11 +3006,9 @@ mep_expand_epilogue (void)
      emit_insn (gen_mep_enable_int ());
  
    if (mep_prevent_lp_restore)
@@ -32,7 +42,7 @@
      emit_jump_insn (gen_mep_reti ());
    else
      emit_jump_insn (gen_return_internal (gen_rtx_REG (SImode, lp_temp)));
-@@ -3025,6 +3024,8 @@ mep_expand_eh_return (rtx *operands)
+@@ -3025,6 +3025,8 @@ mep_expand_eh_return (rtx *operands)
      }
  
    emit_insn (gen_eh_epilogue (operands[0]));
@@ -41,7 +51,7 @@
  }
  
  void
-@@ -5886,6 +5887,29 @@ mep_cgen_regnum_to_type (enum cgen_regnum_operand_type cr)
+@@ -5886,6 +5888,29 @@ mep_cgen_regnum_to_type (enum cgen_regnum_operand_type cr)
      }
  }
  
@@ -71,7 +81,7 @@
  static void
  mep_init_builtins (void)
  {
-@@ -5937,16 +5961,12 @@ mep_init_builtins (void)
+@@ -5937,16 +5962,12 @@ mep_init_builtins (void)
      if ((cgen_insns[i].groups & GROUP_KNOWN_CODE) == 0
  	&& mep_intrinsic_insn[cgen_insns[i].intrinsic] >= 0)
        {
